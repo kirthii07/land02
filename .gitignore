@@ -8,11 +8,10 @@ ENV/
 .env
 *.env.local
 
-# Python cache & artifacts
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
-*.pkl
 
 # SQLite Database
 data/*.db
@@ -25,3 +24,5 @@ data/*.db
 Thumbs.db
 Desktop.ini
 
+# Ensure model is committed
+!models/landslide_model.pkl

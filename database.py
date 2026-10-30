@@ -7,12 +7,20 @@ from config import DATABASE_PATH
 
 def get_connection():
     """Create and return a SQLite database connection."""
-    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-    connection = sqlite3.connect(
-        DATABASE_PATH,
-        check_same_thread=False
-    )
+    global DATABASE_PATH
+    try:
+        DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(
+            DATABASE_PATH,
+            check_same_thread=False
+        )
+    except OSError:
+        DATABASE_PATH = Path("/tmp") / "landslide.db"
+        DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(
+            DATABASE_PATH,
+            check_same_thread=False
+        )
 
     connection.row_factory = sqlite3.Row
 
