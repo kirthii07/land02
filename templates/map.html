@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India GIS Risk Map | Landslide Monitoring System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        .map-page-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 1080px) {
+            .map-page-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .map-viewport-wrapper {
+            position: relative;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #indiaRiskMap {
+            width: 100%;
+            height: 680px;
+            background: #f1f5f9;
+        }
+
+        .map-search-bar {
+            position: absolute;
+            top: 16px;
+            left: 60px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+            width: calc(100% - 240px);
+            max-width: 440px;
+        }
+
+        .map-search-bar input {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            flex: 1;
+            padding: 6px 8px;
+            color: #0f172a;
+            background: transparent;
+        }
+
+        .map-search-bar button {
+            background: #047857;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .map-search-bar button:hover {
+            background: #065f46;
+        }
+
+        .map-action-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+        }
+
+        .map-ctrl-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .map-ctrl-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .map-layer-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+            font-size: 12px;
+            min-width: 260px;
+        }
+
+        .map-layer-panel h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .layer-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        .layer-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .layer-color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .quick-locations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .quick-loc-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .quick-loc-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .inspector-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            height: 680px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inspector-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 14px;
+            margin-bottom: 16px;
+        }
+
+        .inspector-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .badge-very-high { background: #fee2e2; color: #b91c1c; }
+        .badge-high { background: #ffedd5; color: #c2410c; }
+        .badge-moderate { background: #fef3c7; color: #b45309; }
+        .badge-low { background: #ecfdf5; color: #047857; }
+
+        .inspector-section {
+            margin-bottom: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .inspector-section h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inspector-section p {
+            font-size: 13px;
+            color: #1e293b;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .inspector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .inspector-meta-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .inspector-meta-box span {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .inspector-meta-box strong {
+            font-size: 13px;
+            color: #0f172a;
+        }
+
+        .distinction-banner {
+            background: #f1f5f9;
+            border-left: 3px solid #047857;
+            padding: 8px 10px;
+            border-radius: 0 6px 6px 0;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.4;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">
+        🌧️
+        <span>Landslide<br>Monitor</span>
+    </div>
+
+    <nav>
+        <a href="/" class="nav-item">
+            🏠 Dashboard
+        </a>
+        <a href="/prediction" class="nav-item">
+            🤖 Prediction
+        </a>
+        <a href="/map" class="nav-item active">
+            🗺️ Risk Map
+        </a>
+        <a href="/history" class="nav-item">
+            📈 History
+        </a>
+        <a href="/alerts" class="nav-item">
+            🚨 Alerts
+        </a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <header class="topbar">
+        <div>
+            <h1>India GIS Landslide Monitoring Map</h1>
+            <p>Geographical terrain analysis, GSI historical susceptibility zones & interactive coordinate inspector</p>
+        </div>
+        <div class="location-box">
+            📍 <span id="headerLocDisplay">India Spatial Grid</span>
+        </div>
+    </header>
+
+    <div class="quick-locations">
+        <span style="font-size: 12px; color: #64748b; font-weight: 600; padding: 4px 0;">Critical Slope Corridors:</span>
+        <button class="quick-loc-btn" onclick="flyToCoordinates(11.685, 76.132, 'Wayanad, Kerala')">📍 Wayanad (Kerala)</button>
+        <button class="quick-loc-btn" onclick="flyToCoordinates(11.410, 76.695, 'Nilgiris (Ooty), Tamil Nadu')">📍 Nilgiris (Tamil Nadu)</button>
+        <button class="quick-loc-btn" onclick="flyToCoordinates(30.412, 79.324, 'Chamoli, Uttarakhand')">📍 Chamoli (Uttarakhand)</button>
+        <button class="quick-loc-btn" onclick="flyToCoordinates(31.104, 77.173, 'Shimla, Himachal Pradesh')">📍 Shimla (Himachal)</button>
+        <button class="quick-loc-btn" onclick="flyToCoordinates(27.036, 88.262, 'Darjeeling, West Bengal')">📍 Darjeeling (Sikkim Belt)</button>
+        <button class="quick-loc-btn" onclick="resetIndiaView()">🇮🇳 Reset to India</button>
+    </div>
+
+    <div class="map-page-layout">
+        <!-- MAP CANVAS -->
+        <div class="map-viewport-wrapper">
+            <!-- SEARCH BAR -->
+            <div class="map-search-bar">
+                <input type="text" id="mapSearchInput" placeholder="Search Indian state, district, or town..." onkeydown="if(event.key==='Enter') executeMapSearch()">
+                <button type="button" onclick="executeMapSearch()">Search</button>
+            </div>
+
+            <!-- ACTION CONTROLS -->
+            <div class="map-action-controls">
+                <button class="map-ctrl-btn" onclick="resetIndiaView()">
+                    ↺ Reset India View
+                </button>
+            </div>
+
+            <!-- LEAFLET CONTAINER -->
+            <div id="indiaRiskMap"></div>
+
+            <!-- LAYER CONTROLS -->
+            <div class="map-layer-panel">
+                <h4>GIS Map Layers</h4>
+                <label class="layer-toggle-row">
+                    <span class="layer-toggle-label">
+                        <span class="layer-color-indicator" style="background: #dc2626;"></span>
+                        Landslide-Prone Zones (GSI)
+                    </span>
+                    <input type="checkbox" id="layerLandslide" checked onchange="toggleGISLayer('landslide')">
+                </label>
+                <label class="layer-toggle-row">
+                    <span class="layer-toggle-label">
+                        <span class="layer-color-indicator" style="background: #84cc16;"></span>
+                        Agricultural Areas
+                    </span>
+                    <input type="checkbox" id="layerAgri" checked onchange="toggleGISLayer('agriculture')">
+                </label>
+                <label class="layer-toggle-row">
+                    <span class="layer-toggle-label">
+                        <span class="layer-color-indicator" style="background: #047857;"></span>
+                        Vegetation & Forest Belts
+                    </span>
+                    <input type="checkbox" id="layerForest" checked onchange="toggleGISLayer('forest')">
+                </label>
+                <label class="layer-toggle-row">
+                    <span class="layer-toggle-label">
+                        <span class="layer-color-indicator" style="background: #2563eb;"></span>
+                        Selected Location Marker
+                    </span>
+                    <input type="checkbox" id="layerSelected" checked onchange="toggleSelectedLayer()">
+                </label>
+                <label class="layer-toggle-row">
+                    <span class="layer-toggle-label">
+                        <span class="layer-color-indicator" style="background: #059669; border: 2px solid #ffffff; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></span>
+                        ESP32 Monitoring Station
+                    </span>
+                    <input type="checkbox" id="layerStation" checked onchange="toggleStationLayer()">
+                </label>
+            </div>
+        </div>
+
+        <!-- INSPECTOR PANEL -->
+        <div class="inspector-card">
+            <div class="inspector-header">
+                <span id="inspectBadge" class="inspector-badge badge-low">Verified GIS Data</span>
+                <h2 id="inspectTitle" style="font-size: 18px; color: #0f172a; margin-top: 4px;">Click anywhere on map</h2>
+                <p id="inspectCoords" style="font-size: 12px; color: #64748b; font-family: monospace; margin-top: 4px;">Latitude: --, Longitude: --</p>
+            </div>
+
+            <!-- REGION & LOCATION -->
+            <div class="inspector-section">
+                <h4>📍 Administrative Region</h4>
+                <div class="inspector-grid">
+                    <div class="inspector-meta-box">
+                        <span>State</span>
+                        <strong id="inspectState">India</strong>
+                    </div>
+                    <div class="inspector-meta-box">
+                        <span>District</span>
+                        <strong id="inspectDistrict">Click map location</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LANDSLIDE SUSCEPTIBILITY -->
+            <div class="inspector-section">
+                <h4>⚠️ Landslide Susceptibility (GSI NLSM)</h4>
+                <p><strong>Susceptibility Class:</strong> <span id="inspectSusceptibility">Select a location</span></p>
+                <p style="font-size: 12px; color: #475569;" id="inspectGeology">Click any point on India's geographical map to inspect geological formations, historical records, and slope triggers.</p>
+                <p style="font-size: 12px; color: #b91c1c; font-weight: 500;" id="inspectTrigger"></p>
+                <p style="font-size: 11px; color: #64748b; margin-top: 4px;" id="inspectHistory"></p>
+            </div>
+
+            <!-- AGRICULTURAL & VEGETATION -->
+            <div class="inspector-section">
+                <h4>🌾 Land Use & Vegetation (FSI)</h4>
+                <p><strong>Agriculture:</strong> <span id="inspectAgriculture">Mixed / Non-intensive</span></p>
+                <p><strong>Forest / Canopy:</strong> <span id="inspectVegetation">General vegetative cover</span></p>
+            </div>
+
+            <!-- REAL-TIME WEATHER AT POINT -->
+            <div class="inspector-section">
+                <h4>⛅ Live Meteorological Telemetry</h4>
+                <div class="inspector-grid">
+                    <div class="inspector-meta-box">
+                        <span>Temperature</span>
+                        <strong id="inspectTemp">-- °C</strong>
+                    </div>
+                    <div class="inspector-meta-box">
+                        <span>Humidity</span>
+                        <strong id="inspectHumidity">-- %</strong>
+                    </div>
+                    <div class="inspector-meta-box">
+                        <span>Rainfall (1h)</span>
+                        <strong id="inspectRain">-- mm</strong>
+                    </div>
+                    <div class="inspector-meta-box">
+                        <span>Wind Speed</span>
+                        <strong id="inspectWind">-- m/s</strong>
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: #64748b; margin-top: 6px;" id="inspectWeatherDesc">Telemetry source: OpenWeatherMap Current Data API</p>
+            </div>
+
+            <div class="distinction-banner">
+                <strong>Data Provenance Notice:</strong> Historical slope susceptibility is derived from Geological Survey of India (GSI) NLSM mapping and FSI forest records. Live sensor telemetry is streamed from deployed ESP32 field stations.
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map;
+    let selectedMarker = null;
+    let stationMarker = null;
+    let gisLayerGroups = {
+        landslide: null,
+        agriculture: null,
+        forest: null
+    };
+
+    const INDIA_CENTER = [22.3511, 78.6677];
+    const INDIA_ZOOM = 5;
+
+    // Initialize Map with Clean Geographical Basemap (NO street clutter)
+    function initMap() {
+        map = L.map('indiaRiskMap', {
+            center: INDIA_CENTER,
+            zoom: INDIA_ZOOM,
+            minZoom: 4,
+            maxZoom: 16,
+            zoomControl: true
+        });
+
+        // Clean Geographical / Topographical Basemap (Esri World Topographic - Free & No API Key Required)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; USGS, GIS Community',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Initialize GIS Layer Groups
+        gisLayerGroups.landslide = L.layerGroup().addTo(map);
+        gisLayerGroups.agriculture = L.layerGroup().addTo(map);
+        gisLayerGroups.forest = L.layerGroup().addTo(map);
+
+        // Fetch and Render GIS Layers
+        loadGISLayers();
+
+        // Load active ESP32 monitoring station
+        loadStationMarker();
+
+        // Map Click Listener - ANY location in India
+        map.on('click', function(e) {
+            handleLocationClick(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Initial default inspection point (Wayanad Field Station)
+        handleLocationClick(11.685, 76.132, false);
+    }
+
+    // Load GIS Layers from Backend API
+    async function loadGISLayers() {
+        try {
+            const res = await fetch('/api/gis/layers');
+            const data = await res.json();
+            if (!data.success || !data.layers) return;
+
+            // 1. Landslide Susceptibility Layers
+            if (data.layers.landslide) {
+                L.geoJSON(data.layers.landslide, {
+                    style: function(feature) {
+                        return {
+                            color: feature.properties.color || '#dc2626',
+                            weight: 2,
+                            fillColor: feature.properties.color || '#dc2626',
+                            fillOpacity: 0.28
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const p = feature.properties;
+                        layer.bindPopup(`
+                            <div style="font-family: inherit; font-size: 13px; line-height: 1.5;">
+                                <span style="background: #fee2e2; color: #b91c1c; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">
+                                    GSI Susceptibility: ${p.susceptibility}
+                                </span>
+                                <h4 style="margin: 6px 0 2px 0; color: #0f172a; font-size: 14px;">${p.name}</h4>
+                                <p style="margin: 0; color: #475569; font-size: 12px;"><strong>State:</strong> ${p.state}</p>
+                                <p style="margin: 4px 0 0 0; color: #334155; font-size: 11px;"><strong>Geology:</strong> ${p.geology}</p>
+                                <p style="margin: 4px 0 0 0; color: #b91c1c; font-size: 11px;"><strong>Triggers:</strong> ${p.trigger}</p>
+                                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 10px;"><strong>Key Events:</strong> ${p.historical_events}</p>
+                            </div>
+                        `);
+                    }
+                }).addTo(gisLayerGroups.landslide);
+            }
+
+            // 2. Agricultural Belts
+            if (data.layers.agriculture) {
+                L.geoJSON(data.layers.agriculture, {
+                    style: function(feature) {
+                        return {
+                            color: feature.properties.color || '#84cc16',
+                            weight: 1.5,
+                            fillColor: feature.properties.color || '#a3e635',
+                            fillOpacity: 0.22,
+                            dashArray: '3, 4'
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const p = feature.properties;
+                        layer.bindPopup(`
+                            <div style="font-family: inherit; font-size: 13px; line-height: 1.4;">
+                                <span style="background: #ecfdf5; color: #047857; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                    AGRARIAN BASIN
+                                </span>
+                                <h4 style="margin: 6px 0 2px 0; color: #0f172a;">${p.name}</h4>
+                                <p style="margin: 0; color: #475569; font-size: 12px;"><strong>Classification:</strong> ${p.classification}</p>
+                                <p style="margin: 3px 0 0 0; color: #334155; font-size: 11px;"><strong>Major Crops:</strong> ${p.crops}</p>
+                                <p style="margin: 3px 0 0 0; color: #64748b; font-size: 11px;"><strong>Soil Type:</strong> ${p.soil_type}</p>
+                            </div>
+                        `);
+                    }
+                }).addTo(gisLayerGroups.agriculture);
+            }
+
+            // 3. Forest & Vegetation Corridors
+            if (data.layers.forest) {
+                L.geoJSON(data.layers.forest, {
+                    style: function(feature) {
+                        return {
+                            color: feature.properties.color || '#047857',
+                            weight: 1.5,
+                            fillColor: feature.properties.color || '#059669',
+                            fillOpacity: 0.24
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const p = feature.properties;
+                        layer.bindPopup(`
+                            <div style="font-family: inherit; font-size: 13px; line-height: 1.4;">
+                                <span style="background: #064e3b; color: #a7f3d0; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                    FOREST BIOME (FSI)
+                                </span>
+                                <h4 style="margin: 6px 0 2px 0; color: #0f172a;">${p.name}</h4>
+                                <p style="margin: 0; color: #475569; font-size: 12px;"><strong>Canopy:</strong> ${p.canopy}</p>
+                                <p style="margin: 3px 0 0 0; color: #334155; font-size: 11px;"><strong>Classification:</strong> ${p.classification}</p>
+                                <p style="margin: 3px 0 0 0; color: #64748b; font-size: 11px;"><strong>Dominant Flora:</strong> ${p.flora}</p>
+                            </div>
+                        `);
+                    }
+                }).addTo(gisLayerGroups.forest);
+            }
+        } catch (e) {
+            console.error("GIS layers error:", e);
+        }
+    }
+
+    // Load ESP32 Field Station Marker
+    async function loadStationMarker() {
+        try {
+            const res = await fetch('/api/location');
+            const data = await res.json();
+            if (!data.success || !data.location) return;
+
+            const loc = data.location;
+            const lat = loc.latitude || 11.685;
+            const lon = loc.longitude || 76.132;
+            const risk = (loc.risk_level || 'LOW').toUpperCase();
+
+            let color = '#10b981';
+            if (risk === 'MODERATE') color = '#f59e0b';
+            else if (risk === 'HIGH') color = '#ea580c';
+            else if (risk === 'CRITICAL') color = '#dc2626';
+
+            // Custom pulse icon for telemetry station
+            const stationIcon = L.divIcon({
+                className: 'custom-station-icon',
+                html: `<div style="background: ${color}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 0 10px ${color};"></div>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            });
+
+            stationMarker = L.marker([lat, lon], { icon: stationIcon }).addTo(map);
+            stationMarker.bindPopup(`
+                <div style="font-size: 13px; line-height: 1.4;">
+                    <span style="background: ${color}; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                        LIVE ESP32 FIELD STATION
+                    </span>
+                    <h4 style="margin: 6px 0 2px 0;">${loc.name}</h4>
+                    <p style="margin: 0; color: #475569;"><strong>Risk Assessment:</strong> ${risk}</p>
+                    <p style="margin: 3px 0 0 0; color: #475569;"><strong>SHI Score:</strong> ${Number(loc.shi || 0).toFixed(1)} / 100</p>
+                    <p style="margin: 3px 0 0 0; color: #64748b; font-size: 11px;">Active real-time telemetry streaming</p>
+                </div>
+            `);
+        } catch (e) {
+            console.error("Station marker error:", e);
+        }
+    }
+
+    // Click handler for ANY coordinate in India
+    async function handleLocationClick(lat, lon, autoZoom = true) {
+        // 1. Update Selected Blue Marker
+        if (!selectedMarker) {
+            const blueIcon = L.divIcon({
+                className: 'selected-blue-icon',
+                html: `<div style="background: #2563eb; width: 16px; height: 16px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 0 8px rgba(37, 99, 235, 0.8);"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+            selectedMarker = L.marker([lat, lon], { icon: blueIcon }).addTo(map);
+        } else {
+            selectedMarker.setLatLng([lat, lon]);
+        }
+
+        // 2. Zoom to location smoothly
+        if (autoZoom) {
+            map.flyTo([lat, lon], Math.max(map.getZoom(), 8), { duration: 1 });
+        }
+
+        // 3. Update UI to Loading
+        document.getElementById('inspectTitle').textContent = `Inspecting Location...`;
+        document.getElementById('inspectCoords').textContent = `Latitude: ${lat.toFixed(4)}° N, Longitude: ${lon.toFixed(4)}° E`;
+
+        // 4. Query GIS & Spatial Lookup API
+        try {
+            const res = await fetch(`/api/gis/lookup?lat=${lat}&lon=${lon}`);
+            const data = await res.json();
+            if (data.success && data.data) {
+                renderInspectorDetails(data.data);
+            }
+        } catch (err) {
+            console.error("Lookup failed:", err);
+            document.getElementById('inspectTitle').textContent = `Location [${lat.toFixed(2)}°, ${lon.toFixed(2)}°]`;
+        }
+    }
+
+    // Render details in Inspector panel
+    function renderInspectorDetails(d) {
+        const coords = d.coordinates || {};
+        const loc = d.location || {};
+        const ls = d.landslide || {};
+        const agri = d.agriculture || {};
+        const veg = d.vegetation || {};
+        const weather = d.current_weather || {};
+
+        document.getElementById('inspectCoords').textContent = coords.formatted || `Lat: ${coords.latitude}° N, Lon: ${coords.longitude}° E`;
+        document.getElementById('inspectTitle').textContent = `${loc.district || 'Unassigned District'}, ${loc.state || 'India'}`;
+        document.getElementById('inspectState').textContent = loc.state || 'India';
+        document.getElementById('inspectDistrict').textContent = loc.district || 'Regional Spatial Grid';
+
+        // Susceptibility badge
+        const badge = document.getElementById('inspectBadge');
+        const susc = (ls.susceptibility || 'LOW').toUpperCase();
+        badge.className = 'inspector-badge';
+        if (susc.includes('VERY HIGH') || susc.includes('CRITICAL')) {
+            badge.classList.add('badge-very-high');
+            badge.textContent = 'GSI: Very High Susceptibility';
+        } else if (susc.includes('HIGH')) {
+            badge.classList.add('badge-high');
+            badge.textContent = 'GSI: High Susceptibility';
+        } else if (susc.includes('MODERATE')) {
+            badge.classList.add('badge-moderate');
+            badge.textContent = 'GSI: Moderate Susceptibility';
+        } else {
+            badge.classList.add('badge-low');
+            badge.textContent = 'GSI: Low Susceptibility';
+        }
+
+        document.getElementById('inspectSusceptibility').textContent = ls.susceptibility || 'Low to Moderate';
+        document.getElementById('inspectGeology').textContent = ls.geology || 'Geological bedrock / slope profile verified.';
+        document.getElementById('inspectTrigger').textContent = ls.trigger ? `Trigger Mechanism: ${ls.trigger}` : '';
+        document.getElementById('inspectHistory').textContent = ls.historical_events ? `Historical Slope Incidents: ${ls.historical_events}` : '';
+
+        // Agriculture & Vegetation
+        document.getElementById('inspectAgriculture').textContent = agri.classification || agri.name || 'Mixed / Highland Vegetation';
+        document.getElementById('inspectVegetation').textContent = veg.classification || veg.name || 'Mixed Open Canopy';
+
+        // Weather
+        if (weather && weather.success) {
+            document.getElementById('inspectTemp').textContent = weather.temperature !== null && weather.temperature !== undefined ? `${Number(weather.temperature).toFixed(1)} °C` : '-- °C';
+            document.getElementById('inspectHumidity').textContent = weather.humidity !== null && weather.humidity !== undefined ? `${Number(weather.humidity).toFixed(0)} %` : '-- %';
+            document.getElementById('inspectRain').textContent = weather.precipitation !== null && weather.precipitation !== undefined ? `${Number(weather.precipitation).toFixed(1)} mm` : '0.0 mm';
+            document.getElementById('inspectWind').textContent = weather.wind_speed !== null && weather.wind_speed !== undefined ? `${Number(weather.wind_speed).toFixed(1)} m/s` : '-- m/s';
+            document.getElementById('inspectWeatherDesc').textContent = `Condition: ${weather.description || 'Active'} • Source: ${weather.source || 'OpenWeatherMap'}`;
+        } else {
+            document.getElementById('inspectTemp').textContent = '-- °C';
+            document.getElementById('inspectHumidity').textContent = '-- %';
+            document.getElementById('inspectRain').textContent = '-- mm';
+            document.getElementById('inspectWind').textContent = '-- m/s';
+            document.getElementById('inspectWeatherDesc').textContent = weather.message || 'Telemetry offline or connecting...';
+        }
+    }
+
+    // Quick fly-to helper
+    function flyToCoordinates(lat, lon, label) {
+        document.getElementById('headerLocDisplay').textContent = label;
+        handleLocationClick(lat, lon, true);
+    }
+
+    // Reset view to full India bounds
+    function resetIndiaView() {
+        map.setView(INDIA_CENTER, INDIA_ZOOM);
+        document.getElementById('headerLocDisplay').textContent = 'All India Overview';
+    }
+
+    // Layer toggles
+    function toggleGISLayer(layerKey) {
+        const group = gisLayerGroups[layerKey];
+        if (!group) return;
+        const checkbox = document.getElementById(
+            layerKey === 'landslide' ? 'layerLandslide' :
+            layerKey === 'agriculture' ? 'layerAgri' : 'layerForest'
+        );
+        if (checkbox.checked) {
+            map.addLayer(group);
+        } else {
+            map.removeLayer(group);
+        }
+    }
+
+    function toggleSelectedLayer() {
+        const cb = document.getElementById('layerSelected');
+        if (!selectedMarker) return;
+        if (cb.checked) {
+            map.addLayer(selectedMarker);
+        } else {
+            map.removeLayer(selectedMarker);
+        }
+    }
+
+    function toggleStationLayer() {
+        const cb = document.getElementById('layerStation');
+        if (!stationMarker) return;
+        if (cb.checked) {
+            map.addLayer(stationMarker);
+        } else {
+            map.removeLayer(stationMarker);
+        }
+    }
+
+    // Search Indian Location via Nominatim API with fallback dictionary
+    async function executeMapSearch() {
+        const input = document.getElementById('mapSearchInput').value.trim();
+        if (!input) return;
+
+        // Local high-precision dictionary for rapid instant jump
+        const PRESET_PLACES = {
+            "wayanad": [11.685, 76.132, "Wayanad, Kerala"],
+            "idukki": [9.849, 76.971, "Idukki, Kerala"],
+            "munnar": [10.088, 77.059, "Munnar, Idukki"],
+            "nilgiris": [11.410, 76.695, "Nilgiris, Tamil Nadu"],
+            "ooty": [11.410, 76.695, "Udhagamandalam (Ooty), Tamil Nadu"],
+            "kodaikanal": [10.238, 77.489, "Kodaikanal, Tamil Nadu"],
+            "coorg": [12.337, 75.806, "Kodagu (Coorg), Karnataka"],
+            "kodagu": [12.337, 75.806, "Kodagu, Karnataka"],
+            "chamoli": [30.412, 79.324, "Chamoli, Uttarakhand"],
+            "kedarnath": [30.735, 79.066, "Kedarnath, Uttarakhand"],
+            "joshimath": [30.556, 79.566, "Joshimath, Uttarakhand"],
+            "dehradun": [30.316, 78.032, "Dehradun, Uttarakhand"],
+            "shimla": [31.104, 77.173, "Shimla, Himachal Pradesh"],
+            "kullu": [31.957, 77.109, "Kullu, Himachal Pradesh"],
+            "manali": [32.239, 77.188, "Manali, Himachal Pradesh"],
+            "kinnaur": [31.651, 78.475, "Kinnaur, Himachal Pradesh"],
+            "darjeeling": [27.036, 88.262, "Darjeeling, West Bengal"],
+            "kalimpong": [27.066, 88.468, "Kalimpong, West Bengal"],
+            "gangtok": [27.338, 88.606, "Gangtok, Sikkim"],
+            "guwahati": [26.144, 91.736, "Guwahati, Assam"],
+            "shillong": [25.578, 91.893, "Shillong, Meghalaya"],
+            "mahabaleshwar": [17.923, 73.658, "Mahabaleshwar, Maharashtra"],
+            "pune": [18.520, 73.856, "Pune, Maharashtra"],
+            "delhi": [28.613, 77.209, "New Delhi, India"],
+            "mumbai": [19.076, 72.877, "Mumbai, Maharashtra"],
+            "bengaluru": [12.971, 77.594, "Bengaluru, Karnataka"],
+            "chennai": [13.082, 80.270, "Chennai, Tamil Nadu"],
+            "kolkata": [22.572, 88.363, "Kolkata, West Bengal"]
+        };
+
+        const queryLower = input.toLowerCase();
+        for (const [key, coords] of Object.entries(PRESET_PLACES)) {
+            if (queryLower.includes(key)) {
+                flyToCoordinates(coords[0], coords[1], coords[2]);
+                return;
+            }
+        }
+
+        // Live Geocoding via Nominatim (countrycodes=in)
+        try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&countrycodes=in&limit=1`);
+            const results = await resp.json();
+            if (results && results.length > 0) {
+                const item = results[0];
+                const lat = parseFloat(item.lat);
+                const lon = parseFloat(item.lon);
+                flyToCoordinates(lat, lon, item.display_name.split(',')[0]);
+                return;
+            }
+        } catch (e) {
+            console.error("Geocoding lookup error:", e);
+        }
+
+        alert(`Location "${input}" not resolved. Please try district name or click directly on the India map.`);
+    }
+
+    // Auto-initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+
+</body>
+</html>

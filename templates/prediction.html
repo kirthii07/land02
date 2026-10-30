@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Prediction | Landslide Monitor</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .prediction-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 7px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .predict-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .prediction-result {
+            text-align: center;
+            padding: 35px 20px;
+        }
+
+        .prediction-result h1 {
+            font-size: 28px;
+            margin: 15px 0;
+        }
+
+        .probability {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        .prediction-note {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 900px) {
+            .prediction-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="logo">
+        🌧️
+        <span>Landslide<br>Monitor</span>
+    </div>
+
+    <nav>
+
+        <a href="/" class="nav-item">
+            🏠 Dashboard
+        </a>
+
+        <a href="/prediction" class="nav-item active">
+            🤖 Prediction
+        </a>
+
+        <a href="/map" class="nav-item">
+            🗺️ Risk Map
+        </a>
+
+        <a href="/history" class="nav-item">
+            📈 History
+        </a>
+
+        <a href="/alerts" class="nav-item">
+            🚨 Alerts
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div>
+            <h1>ML Landslide Prediction</h1>
+
+            <p>
+                Predict potential landslide risk using
+                multi-sensor conditions
+            </p>
+        </div>
+
+    </header>
+
+
+    <section class="prediction-layout">
+
+        <!-- INPUT -->
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Sensor Inputs</h2>
+
+                    <p>
+                        Enter current environmental values
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Rainfall - 24 Hours (mm)
+                </label>
+
+                <input
+                    type="number"
+                    id="rain24"
+                    value="50"
+                    step="0.1">
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Rainfall - 48 Hours (mm)
+                </label>
+
+                <input
+                    type="number"
+                    id="rain48"
+                    value="80"
+                    step="0.1">
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Rainfall - 72 Hours (mm)
+                </label>
+
+                <input
+                    type="number"
+                    id="rain72"
+                    value="100"
+                    step="0.1">
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Rainfall - 96 Hours (mm)
+                </label>
+
+                <input
+                    type="number"
+                    id="rain96"
+                    value="120"
+                    step="0.1">
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Soil Moisture (%)
+                </label>
+
+                <input
+                    type="number"
+                    id="soil"
+                    value="65"
+                    step="0.1">
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Slope Tilt (°)
+                </label>
+
+                <input
+                    type="number"
+                    id="tiltInput"
+                    value="2"
+                    step="0.1">
+            </div>
+
+
+            <button
+                class="predict-btn"
+                onclick="runPrediction()">
+
+                🔍 Analyze Landslide Risk
+
+            </button>
+
+        </div>
+
+
+        <!-- RESULT -->
+
+        <div class="panel prediction-result">
+
+            <div style="font-size:50px;">
+                🤖
+            </div>
+
+            <p>
+                ML Prediction Result
+            </p>
+
+            <h1 id="predictionLabel">
+                Waiting...
+            </h1>
+
+            <div class="probability">
+
+                Model Confidence:
+                <strong id="probability">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="prediction-note">
+
+                This prediction is generated from the
+                trained prototype machine-learning model.
+                It should be interpreted together with
+                sensor conditions and the Slope Health Index.
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+async function runPrediction() {
+
+    const payload = {
+
+        rain_24h:
+            Number(document.getElementById("rain24").value),
+
+        rain_48h:
+            Number(document.getElementById("rain48").value),
+
+        rain_72h:
+            Number(document.getElementById("rain72").value),
+
+        rain_96h:
+            Number(document.getElementById("rain96").value),
+
+        soil_moisture:
+            Number(document.getElementById("soil").value),
+
+        tilt:
+            Number(document.getElementById("tiltInput").value)
+    };
+
+
+    const label =
+        document.getElementById(
+            "predictionLabel"
+        );
+
+    const probability =
+        document.getElementById(
+            "probability"
+        );
+
+
+    label.textContent =
+        "Analyzing...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/predict",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(payload)
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            label.textContent =
+                "Prediction Failed";
+
+            probability.textContent =
+                "--";
+
+            return;
+        }
+
+
+        label.textContent =
+            result.prediction_label;
+
+
+        if (result.probability !== null) {
+
+            probability.textContent =
+                (
+                    result.probability * 100
+                ).toFixed(1) + "%";
+
+        } else {
+
+            probability.textContent =
+                "N/A";
+
+        }
+
+
+        if (
+            result.prediction === 1
+        ) {
+
+            label.style.color =
+                "#dc2626";
+
+        } else {
+
+            label.style.color =
+                "#16a34a";
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        label.textContent =
+            "Prediction Error";
+
+        probability.textContent =
+            "--";
+    }
+}
+
+</script>
+
+</body>
+</html>

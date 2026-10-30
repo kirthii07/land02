@@ -1,0 +1,65 @@
+ID,Name,Y,X,Date,Place,District
+1,Chundakkadu (Nelliyampathi),10.87183,76.73318,2000-08-25,Chittur,Palakkad
+2,Cheenikuzhi,9.88,76.84611,2001-07-09,Thodupuzha,Idukki
+3,Kumily,9.601944,77.15528,2002-07-12,Peerumedu,Idukki
+4,Meppadi,11.55667,76.13833,2003-06-15,Vythiri,Wayanad
+5,KaithapadamThooveriParambil (Pottammelâ€“Palazhi road),11.49278,75.93639,2004-06-06,Kozhikode,Kozhikode
+6,Elappara,9.623056,76.98194,2006-09-25,Peerumedu,Idukki
+7,Kannur,11.87806,75.35278,2007-06-22,Ezhimala,Kannur
+8,Vallamthodu,11.86056,75.99722,2007-06-23,Manathavady,Wayanad
+9,Chittur,10.55253,76.56798,2007-07-17,Chittur,Palakkad
+10,Mysoorpettaâ€“Thottamukam,11.3,76.05528,2007-07-17,Kozhikode,Kozhikode
+11,Panakkachal,11.9425,75.6425,2007-07-17,Chavassery,Kannur
+12,Anayode,11.33972,76.075,2007-07-17,Kozhikode,Kozhikode
+13,Alappara,11.43,75.81167,2007-07-17,Balussery,Kozhikode
+14,Edavanna,11.24556,76.14417,2007-07-17,Eranadu,Malappuram
+15,Kavalupara,11.13562,76.08839,2007-07-17,Mancheri,Malappuram
+16,Mysoorpettaâ€“Thottumukkam Kodiyattur village,11.29333,76.01528,2007-07-17,Koilandy,Kozhikode
+17,Thottumukkam Kumaranallur village,11.28194,76.05778,2007-07-17,Kozhikode,Kozhikode
+18,Pakakkachal Koodaranji village,11.3075,76.04639,2007-07-17,Kozhikode,Kozhikode
+19,Anayode Koodaranji village,11.44806,76.1075,2007-07-17,Kozhikode,Kozhikode
+20,Chengara Vettilapara village,11.2575,76.09639,2007-07-17,Eranadu,Malappuram
+21,Alappara Vettilapara village,10.29611,76.53639,2007-07-17,Chalakudy,Thrissur
+22,Odakkayamâ€“Muppari mala Vettilapara village,11.2675,76.14472,2007-07-17,Eranadu,Malappuram
+23,Chepilikunnu Kondotti village,11.09417,76.00194,2007-07-17,Eranadu,Malappuram
+24,Edavanna Edavanna village,11.35306,76.13972,2007-07-17,Eranadu,Malappuram
+25,Mannarmala Kariyavattom village,11,76.2525,2007-07-17,Perinthalmanna,Malappuram
+26,Oranjottukunnu Konthaladu village,11.69278,75.91889,2007-07-17,Vellamunda,Wayanad
+27,Thoradumala Konthaladu village,11.50028,75.83528,2007-07-17,Koilandy,Kozhikode
+28,Kallala 101/850 Vazhikkadavu village,11.40611,76.37333,2008-06-23,Nilambur,Malappuram
+29,Kallala 101/900 Vazhikkadavu village,11.3825,76.34556,2008-06-23,Nilambur,Malappuram
+30,Kallala102/400 Vazhikkadavu village,11.37556,76.40389,2008-06-23,Nilambur,Malappuram
+31,Kallala102/450 Vazhikkadavu village,11.39306,76.35806,2008-06-23,Nilambur,Malappuram
+32,Kallala102/700 Vazhikkadavu village,11.43056,76.36194,2008-06-23,Nilambur,Malappuram
+33,Kallala103/500 Vazhikkadavu village,11.43472,76.3925,2008-06-23,Nilambur,Malappuram
+34,Cheruthoni,9.85,76.97222,2009-07-07,Thodupuzha,Idukki
+35,Adoor,9.209444,76.80917,2009-07-16,Adoor,Pathanamthitta
+36,Adimali,9.980833,76.9375,2010-06-15,Devikulam,Idukki
+37,Munnar,10.14722,77.04583,2010-07-22,Devikulam,Idukki
+38,Chokli,11.79111,75.66722,2013-06-09,Thalassery,Kannur
+39,Punalur,9.085,76.98056,2015-10-30,Punalur,Kollam
+40,Kattappana,9.763333,77.09222,2018-07-09,Idukki,Idukki
+41,Puthur,10.50019,76.28712,2018-07-15,Thrissur,Thrissur
+42,Kuttampuzha,10.16694,76.74444,2018-07-19,Ernakulam,Ernakulam
+43,Ambayathode,11.87199,75.89126,2018-08-09,Kottiyur,Kannur
+44,Ettumanoor,9.693611,76.57306,2018-08-11,Ettumanoor,Kottayam
+45,Chalakudy,10.30528,76.31778,2018-08-15,Chalakudy,Thrissur
+46,Kalpetta,11.59083,76.1025,2019-07-22,Vythiri,Wayanad
+47,Kavalappara,11.13562,76.08839,2019-08-08,Nilambur,Malappuram
+48,Puthumala,11.531,76.0055,2019-08-08,Vythiri,Wayanad
+49,Kavalappara,10.76389,76.30111,2019-08-08,Nilambur,Malappuram
+50,Meppadi,11.5295,76.1432,2019-08-09,Neyyattinkara,Thiruvananthapuram
+51,Puthumala,11.4975,76.12949,2019-08-09,Vythiri,Wayanad
+52,Rajamala,10.12479,77.02582,2020-08-07,Devikulam,Idukki
+53,Nilambur,11.29556,76.14528,2020-08-07,Nilambur,Malappuram
+54,Peerumedu,9.499167,77.05056,2020-08-07,Peermade,Idukki
+55,Rajamala,10.0891,77.0806,2020-08-07,Pettimudi,Idukki
+56,Munnar,10.085,77.05806,2020-08-08,Devikulam,Idukki
+57,Pallivasal,10.02083,77.05917,2020-08-08,Devikulam,Idukki
+58,Kootickal,9.584307,76.88343,2020-10-16,Mundakkayam,Kottayam
+59,Panamaram,11.66861,75.87639,2021-07-16,Chembonada,Kozhikode
+60,Adimali,10.15,76.99028,2022-08-05,Devikulam,Idukki
+61,Thodupuzha,9.90681,76.75594,2022-09-06,Thodupuzha,Idukki
+62,Puthumala,11.48803,76.13652,2022-10-14,Vythiri,Wayanad
+63,Cheruthoni,9.856389,76.95111,2022-10-15,Idukki,Idukki
+64,Mundakkai,11.46611,76.13634,2024-07-30,Mundakkai,Wayanad

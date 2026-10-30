@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Environment Variables & Secrets
+.env
+*.env.local
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.pkl
+
+# SQLite Database
+data/*.db
+*.sqlite3
+
+# OS / Editor files
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
+

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>History | Landslide Monitor</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #edf0f4;
+            font-size: 13px;
+        }
+
+        th {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .risk-badge {
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .LOW {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .MODERATE {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .HIGH {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .CRITICAL {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .history-chart {
+            height: 330px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="logo">
+        🌧️
+        <span>Landslide<br>Monitor</span>
+    </div>
+
+    <nav>
+
+        <a href="/" class="nav-item">
+            🏠 Dashboard
+        </a>
+
+        <a href="/prediction" class="nav-item">
+            🤖 Prediction
+        </a>
+
+        <a href="/map" class="nav-item">
+            🗺️ Risk Map
+        </a>
+
+        <a href="/history" class="nav-item active">
+            📈 History
+        </a>
+
+        <a href="/alerts" class="nav-item">
+            🚨 Alerts
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div>
+
+            <h1>Monitoring History</h1>
+
+            <p>
+                Historical sensor and risk observations
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>SHI Trend</h2>
+
+                <p>
+                    Slope Health Index over recent observations
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="history-chart">
+
+            <canvas id="historyChart"></canvas>
+
+        </div>
+
+    </section>
+
+
+    <br>
+
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>Sensor Records</h2>
+
+                <p>
+                    Latest monitoring observations
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Time</th>
+                        <th>Rainfall</th>
+                        <th>Soil</th>
+                        <th>Tilt</th>
+                        <th>Humidity</th>
+                        <th>SHI</th>
+                        <th>Risk</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="historyTable">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+async function loadHistory() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/history?limit=50"
+            );
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+            return;
+        }
+
+
+        const data =
+            result.data;
+
+
+        renderChart(data);
+
+        renderTable(data);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+function renderChart(data) {
+
+    const ordered =
+        [...data].reverse();
+
+
+    const labels =
+        ordered.map(
+            item => {
+
+                const date =
+                    new Date(
+                        item.timestamp
+                    );
+
+                return date.toLocaleTimeString(
+                    [],
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }
+                );
+
+            }
+        );
+
+
+    const shi =
+        ordered.map(
+            item =>
+                Number(item.shi)
+        );
+
+
+    new Chart(
+
+        document.getElementById(
+            "historyChart"
+        ),
+
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [
+
+                    {
+                        label:
+                            "Slope Health Index",
+
+                        data: shi,
+
+                        borderWidth: 2,
+
+                        tension: 0.3,
+
+                        fill: false
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                scales: {
+
+                    y: {
+
+                        min: 0,
+
+                        max: 100
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+}
+
+
+function renderTable(data) {
+
+    const table =
+        document.getElementById(
+            "historyTable"
+        );
+
+
+    table.innerHTML = "";
+
+
+    data.forEach(
+        item => {
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            const date =
+                new Date(
+                    item.timestamp
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${date.toLocaleString()}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.rainfall
+                    ).toFixed(1)} mm
+                </td>
+
+                <td>
+                    ${Number(
+                        item.soil_moisture
+                    ).toFixed(1)} %
+                </td>
+
+                <td>
+                    ${Number(
+                        item.tilt
+                    ).toFixed(2)}°
+                </td>
+
+                <td>
+                    ${Number(
+                        item.humidity
+                    ).toFixed(1)} %
+                </td>
+
+                <td>
+                    ${Number(
+                        item.shi
+                    ).toFixed(1)}
+                </td>
+
+                <td>
+
+                    <span class="
+                        risk-badge
+                        ${item.risk_level}
+                    ">
+
+                        ${item.risk_level}
+
+                    </span>
+
+                </td>
+
+            `;
+
+
+            table.appendChild(row);
+
+        }
+    );
+
+}
+
+
+loadHistory();
+
+</script>
+
+</body>
+
+</html>

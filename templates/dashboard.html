@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Landslide Risk Monitoring System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- ==============================
+         SIDEBAR
+    =============================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            🌧️
+            <span>Landslide<br>Monitor</span>
+        </div>
+
+        <nav>
+            <a href="/" class="nav-item active">
+                🏠 Dashboard
+            </a>
+
+            <a href="/prediction" class="nav-item">
+                🤖 Prediction
+            </a>
+
+            <a href="/map" class="nav-item">
+                🗺️ Risk Map
+            </a>
+
+            <a href="/history" class="nav-item">
+                📈 History
+            </a>
+
+            <a href="/alerts" class="nav-item">
+                🚨 Alerts
+            </a>
+        </nav>
+
+    </aside>
+
+
+    <!-- ==============================
+         MAIN CONTENT
+    =============================== -->
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="topbar">
+            <div>
+                <h1>Localized Landslide Risk Monitoring System</h1>
+                <p>India GIS Monitoring • Real-time Sensor Telemetry & Preventive Decision Support</p>
+            </div>
+
+            <div class="location-box">
+                📍
+                <span id="location">Loading...</span>
+            </div>
+        </header>
+
+
+        <!-- ==============================
+             SUMMARY CARDS (5 cards)
+        =============================== -->
+
+        <section class="sensor-grid">
+
+            <!-- Current Risk -->
+            <div class="sensor-card">
+                <div class="sensor-icon" style="background: #fef2f2;">
+                    ⚠️
+                </div>
+                <div>
+                    <p>Landslide Risk</p>
+                    <h2 id="riskCardValue" style="font-size: 18px;">--</h2>
+                </div>
+            </div>
+
+            <!-- Soil Moisture -->
+            <div class="sensor-card">
+                <div class="sensor-icon moisture">
+                    💧
+                </div>
+                <div>
+                    <p>Soil Moisture</p>
+                    <h2>
+                        <span id="soilMoisture">--</span>
+                        <small>%</small>
+                    </h2>
+                </div>
+            </div>
+
+            <!-- Rainfall -->
+            <div class="sensor-card">
+                <div class="sensor-icon rainfall">
+                    🌧️
+                </div>
+                <div>
+                    <p>Rainfall</p>
+                    <h2>
+                        <span id="rainfall">--</span>
+                        <small>mm</small>
+                    </h2>
+                </div>
+            </div>
+
+            <!-- Slope Tilt -->
+            <div class="sensor-card">
+                <div class="sensor-icon tilt">
+                    📐
+                </div>
+                <div>
+                    <p>Slope Tilt</p>
+                    <h2>
+                        <span id="tilt">--</span>
+                        <small>°</small>
+                    </h2>
+                </div>
+            </div>
+
+            <!-- SHI -->
+            <div class="sensor-card">
+                <div class="sensor-icon shi-icon">
+                    🛡️
+                </div>
+                <div>
+                    <p>SHI Score</p>
+                    <h2>
+                        <span id="shiCard">--</span>
+                        <small>/100</small>
+                    </h2>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ==============================
+             INTERACTIVE INDIA MAP
+        =============================== -->
+
+        <section class="dashboard-map-section panel">
+            <div class="panel-header">
+                <div>
+                    <h2>🗺️ India Landslide Susceptibility Map</h2>
+                    <p>GSI historical zones • Click any location for terrain inspection</p>
+                </div>
+                <a href="/map" style="font-size: 13px; color: #047857; text-decoration: none; font-weight: 600;">Open Full Map →</a>
+            </div>
+            <div class="dashboard-map-wrapper">
+                <div id="dashboardMiniMap"></div>
+            </div>
+        </section>
+
+
+        <!-- ==============================
+             RISK SECTION: SHI + Sensor Status
+        =============================== -->
+
+        <section class="risk-section">
+
+            <!-- SHI Gauge -->
+            <div class="risk-card">
+
+                <div class="section-title">
+                    <h2>Slope Health Index</h2>
+                    <span>0 – 100</span>
+                </div>
+
+                <div class="shi-container">
+
+                    <div class="shi-circle">
+                        <div>
+                            <strong id="shi">--</strong>
+                            <span>/100</span>
+                        </div>
+                    </div>
+
+                    <div class="risk-info">
+                        <p>Current Risk Assessment</p>
+                        <h2 id="riskLevel">--</h2>
+                        <p id="lastUpdated">
+                            Waiting for sensor data...
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Sensor Readings -->
+            <div class="status-card">
+
+                <div class="section-title">
+                    <h2>Sensor Readings</h2>
+                </div>
+
+                <div class="status-content">
+
+                    <div class="status-row">
+                        <span>Temperature</span>
+                        <strong>
+                            <span id="temperature">--</span> °C
+                        </strong>
+                    </div>
+
+                    <div class="status-row">
+                        <span>Humidity</span>
+                        <strong>
+                            <span id="humidity">--</span> %
+                        </strong>
+                    </div>
+
+                    <div class="status-row">
+                        <span>Risk Level</span>
+                        <strong id="statusRisk">--</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==============================
+             CHARTS + RISK FACTORS
+        =============================== -->
+
+        <section class="analysis-grid">
+
+            <!-- CHART -->
+            <div class="panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h2>📊 Sensor Trend Analysis</h2>
+                        <p>Rainfall, Soil Moisture & SHI trends</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="sensorChart"></canvas>
+                </div>
+
+            </div>
+
+
+            <!-- RISK FACTORS -->
+            <div class="panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h2>⚡ Risk Factors</h2>
+                        <p>Contributing risk indicators</p>
+                    </div>
+                </div>
+
+                <div id="riskFactors" class="factor-list">
+                    <div class="empty-state">
+                        Waiting for data...
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==============================
+             RECOMMENDATIONS
+        =============================== -->
+
+        <section class="panel recommendations-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h2>🛡️ Preventive Recommendations</h2>
+                    <p>Actions based on current slope conditions</p>
+                </div>
+            </div>
+
+            <div id="recommendations" class="recommendation-list">
+                <div class="empty-state">
+                    Waiting for risk assessment...
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+        <footer>
+            <span>
+                Localized Landslide Risk Monitoring System
+            </span>
+            <span>
+                India GIS Monitoring • Prototype
+            </span>
+        </footer>
+
+    </main>
+
+
+    <!-- ==============================
+         SCRIPTS
+    =============================== -->
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>

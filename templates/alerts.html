@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Alerts | Landslide Monitor</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .alert-item {
+            padding: 18px;
+
+            border-radius: 10px;
+
+            background: #f8fafc;
+
+            border-left: 5px solid #f59e0b;
+        }
+
+        .alert-item.HIGH {
+            border-left-color: #ea580c;
+        }
+
+        .alert-item.CRITICAL {
+            border-left-color: #dc2626;
+            background: #fff1f2;
+        }
+
+        .alert-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+
+        .alert-level {
+            font-weight: bold;
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .alert-message {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #475569;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="logo">
+        🌧️
+        <span>Landslide<br>Monitor</span>
+    </div>
+
+    <nav>
+
+        <a href="/" class="nav-item">
+            🏠 Dashboard
+        </a>
+
+        <a href="/prediction" class="nav-item">
+            🤖 Prediction
+        </a>
+
+        <a href="/map" class="nav-item">
+            🗺️ Risk Map
+        </a>
+
+        <a href="/history" class="nav-item">
+            📈 History
+        </a>
+
+        <a href="/alerts" class="nav-item active">
+            🚨 Alerts
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<main class="main-content">
+
+    <header class="topbar">
+
+        <div>
+
+            <h1>Risk Alerts</h1>
+
+            <p>
+                High and critical monitoring events
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>Recent Alerts</h2>
+
+                <p>
+                    Automatically generated from sensor assessments
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="alertList"
+            class="alert-list">
+
+            <div class="empty-state">
+                Loading alerts...
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+async function loadAlerts() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/alerts?limit=50"
+            );
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+            return;
+        }
+
+
+        const container =
+            document.getElementById(
+                "alertList"
+            );
+
+
+        container.innerHTML = "";
+
+
+        if (
+            !result.data ||
+            result.data.length === 0
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty-state">
+
+                    ✅ No high-risk alerts currently available.
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        result.data.forEach(
+            alert => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    `alert-item ${alert.risk_level}`;
+
+
+                const date =
+                    new Date(
+                        alert.timestamp
+                    );
+
+
+                item.innerHTML = `
+
+                    <div class="alert-top">
+
+                        <span class="alert-level">
+
+                            🚨
+                            ${alert.risk_level}
+
+                        </span>
+
+                        <span class="alert-time">
+
+                            ${date.toLocaleString()}
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="alert-message">
+
+                        ${alert.message}
+
+                    </div>
+
+                `;
+
+
+                container.appendChild(
+                    item
+                );
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Alert loading error:",
+            error
+        );
+
+    }
+
+}
+
+
+loadAlerts();
+
+</script>
+
+</body>
+
+</html>
