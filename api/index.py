@@ -11,3 +11,4 @@ from app import app
 
 # Vercel entrypoint
 app.debug = False
+
